@@ -992,7 +992,7 @@
 <!-- NAV -->
 <nav id="navbar">
   <a href="#hero" class="nav-logo">
-    <img src="https://ktips.io/wp-content/uploads/2025/07/tips_logo_img.png"
+    <img src="tips_logo_img.png"
          alt="KTIPS" class="nav-logo-img"
          onerror="this.style.display='none'">
     <span class="nav-logo-text">KTIPS</span>
@@ -1051,7 +1051,7 @@
   </div>
 
   <div class="hero-image">
-    <img src="https://ktips.io/wp-content/uploads/2025/07/shutterstock_2094692602-3-1024x528.jpg"
+    <img src="shutterstock_2094692602-3-1024x528.jpg"
          alt="TIPS Coin — Global Blockchain Project"
          onerror="this.parentElement.style.display='none'">
   </div>
@@ -1088,7 +1088,7 @@
       </a>
       <div style="margin-top:2rem; float:right;">
         <div class="project-image">
-          <img src="https://ktips.io/wp-content/uploads/2025/07/tips_img_231025-1024x1024.png"
+          <img src="tips_img_231025-1024x1024.png"
                alt="TIPS Coin"
                onerror="this.parentElement.style.display='none'">
         </div>
@@ -1237,7 +1237,7 @@
     <!-- PDF VIEWER -->
     <div class="wp-viewer">
       <iframe
-        src="https://ktips.io/wp-content/uploads/2025/07/TIPS_whitepaper_en.pdf"
+        src="TIPS_whitepaper_en.pdf"
         title="TIPS Whitepaper"
         loading="lazy"
         onload="this.parentElement.querySelector('.wp-viewer-fallback').style.display='none'"
@@ -1254,13 +1254,13 @@
 
     <!-- ACTIONS -->
     <div class="wp-actions">
-      <a href="https://ktips.io/wp-content/uploads/2025/07/TIPS_whitepaper_en.pdf"
+      <a href="TIPS_whitepaper_en.pdf"
          download="TIPS_Whitepaper_EN.pdf"
          target="_blank"
          class="btn-primary">
         ⬇ Download Whitepaper (PDF)
       </a>
-      <a href="https://ktips.io/wp-content/uploads/2025/07/TIPS_whitepaper_en.pdf"
+      <a href="TIPS_whitepaper_en.pdf"
          target="_blank"
          class="btn-secondary">
         ↗ Open in New Tab
@@ -1272,7 +1272,7 @@
 <!-- ─── SECTION 5: REWARD PROGRAM ─── -->
 <section id="reward">
   <div class="reward-logo reveal">
-    <img src="https://ktips.io/wp-content/uploads/2025/07/tips_logo_img.png"
+    <img src="tips_logo_img.png"
          alt="TIPS Logo"
          onerror="this.parentElement.innerHTML='⬡'">
   </div>
@@ -1378,12 +1378,12 @@
       and platform updates delivered directly to your inbox.
     </p>
 
-    <div class="newsletter-form reveal reveal-delay-3">
-      <input type="email" placeholder="Your email address" id="emailInput">
-      <button onclick="handleSubscribe()">Subscribe</button>
+    <div class="newsletter-form reveal reveal-delay-3" id="formWrapper">
+      <input type="email" placeholder="Your email address" id="emailInput" name="email" required>
+      <button onclick="handleSubscribe(event)">Subscribe</button>
     </div>
     <p class="newsletter-note reveal reveal-delay-4">No spam. Unsubscribe anytime. We respect your privacy.</p>
-    <p id="subscribeMsg" style="display:none;margin-top:1rem;font-family:var(--font-mono);font-size:0.8rem;color:var(--cyan);"></p>
+    <p id="subscribeMsg" style="display:none;margin-top:1rem;font-family:var(--font-mono);font-size:0.8rem;"></p>
   </div>
 </section>
 
@@ -1394,7 +1394,7 @@
 
       <!-- Brand -->
       <div>
-        <img src="https://ktips.io/wp-content/uploads/2025/07/Logo-Footer.png"
+        <img src="tips_logo_img.png"
              alt="KTIPS Foundation"
              class="footer-brand-logo"
              onerror="this.style.display='none'">
@@ -1477,31 +1477,66 @@
     }
   });
 
-  // ─── NEWSLETTER
-  function handleSubscribe() {
+  // ─── NEWSLETTER — Formspree
+  // ★ SETUP: formspree.io 에서 무료 계정 생성 후
+  //   New Form → 이메일(choihakki@gmail.com) 입력 → 발급받은 form ID를 아래 YOUR_FORM_ID 에 교체
+  //   예: https://formspree.io/f/xpwzabcd  →  'xpwzabcd' 부분만 복사
+  const FORMSPREE_ID = 'YOUR_FORM_ID'; // ← 여기에 Formspree Form ID 입력
+
+  async function handleSubscribe(e) {
+    e.preventDefault();
     const input = document.getElementById('emailInput');
     const msg = document.getElementById('subscribeMsg');
     const email = input.value.trim();
 
     if (!email || !email.includes('@')) {
       msg.style.color = '#d47b7b';
-      msg.textContent = 'Please enter a valid email address.';
+      msg.textContent = '✗ Please enter a valid email address.';
       msg.style.display = 'block';
       return;
     }
 
-    msg.style.color = 'var(--cyan)';
-    msg.textContent = '✓ Thank you! You\'ve been subscribed to KTIPS updates.';
-    msg.style.display = 'block';
-    input.value = '';
+    if (FORMSPREE_ID === 'mkoengnl') {
+      // Formspree 미설정 시 임시 안내
+      msg.style.color = 'var(--cyan)';
+      msg.textContent = '✓ Thank you! (Formspree setup required — see code comment)';
+      msg.style.display = 'block';
+      input.value = '';
+      return;
+    }
 
-    // Reset after 5 seconds
-    setTimeout(() => { msg.style.display = 'none'; }, 5000);
+    const btn = document.querySelector('.newsletter-form button');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email: email, _subject: 'New KTIPS Newsletter Subscriber' })
+      });
+
+      if (res.ok) {
+        msg.style.color = 'var(--cyan)';
+        msg.textContent = '✓ Thank you! You\'ve been subscribed to KTIPS updates.';
+        input.value = '';
+      } else {
+        msg.style.color = '#d47b7b';
+        msg.textContent = '✗ Something went wrong. Please try again.';
+      }
+    } catch (err) {
+      msg.style.color = '#d47b7b';
+      msg.textContent = '✗ Network error. Please try again later.';
+    }
+
+    msg.style.display = 'block';
+    btn.textContent = 'Subscribe';
+    btn.disabled = false;
+    setTimeout(() => { msg.style.display = 'none'; }, 6000);
   }
 
-  // Enter key on email input
   document.getElementById('emailInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleSubscribe();
+    if (e.key === 'Enter') handleSubscribe(e);
   });
 
   // ─── PDF VIEWER FALLBACK
